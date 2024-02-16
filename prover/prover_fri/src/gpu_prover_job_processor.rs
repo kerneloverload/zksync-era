@@ -4,6 +4,7 @@ pub mod gpu_prover {
 
     use anyhow::Context as _;
     use shivini::{gpu_prove_from_external_witness_data, ProverContext};
+    use shivini::gpu_proof_config::GpuProofConfig;
     use tokio::task::JoinHandle;
     use zksync_config::configs::{fri_prover_group::FriProverGroupConfig, FriProverConfig};
     use zksync_dal::{fri_prover_dal::types::SocketAddress, ConnectionPool};
@@ -130,12 +131,12 @@ pub mod gpu_prover {
 
             let (gpu_proof_config, proof_config, circuit_id) = match &prover_job.circuit_wrapper {
                 CircuitWrapper::Base(base_circuit) => (
-                    base_circuit.clone().into(),
+                    GpuProofConfig::from_base_layer_circuit(base_circuit),
                     base_layer_proof_config(),
                     base_circuit.numeric_circuit_type(),
                 ),
                 CircuitWrapper::Recursive(recursive_circuit) => (
-                    recursive_circuit.clone().into(),
+                    GpuProofConfig::from_recursive_layer_circuit(recursive_circuit),
                     base_layer_proof_config(),
                     recursive_circuit.numeric_circuit_type(),
                 ),
