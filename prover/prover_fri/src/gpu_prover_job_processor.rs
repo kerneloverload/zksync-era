@@ -121,7 +121,6 @@ pub mod gpu_prover {
         ) -> ProverArtifacts {
             let worker = Worker::new();
             let GpuProverJob {
-                assembly,
                 witness_vector_artifacts,
             } = job;
             let WitnessVectorArtifacts {
@@ -129,12 +128,14 @@ pub mod gpu_prover {
                 prover_job,
             } = witness_vector_artifacts;
 
-            let (proof_config, circuit_id) = match &prover_job.circuit_wrapper {
+            let (gpu_proof_config, proof_config, circuit_id) = match &prover_job.circuit_wrapper {
                 CircuitWrapper::Base(base_circuit) => (
+                    base_circuit.clone().into(),
                     base_layer_proof_config(),
                     base_circuit.numeric_circuit_type(),
                 ),
                 CircuitWrapper::Recursive(recursive_circuit) => (
+                    recursive_circuit.clone().into(),
                     base_layer_proof_config(),
                     recursive_circuit.numeric_circuit_type(),
                 ),
@@ -142,13 +143,12 @@ pub mod gpu_prover {
 
             let started_at = Instant::now();
             let proof = gpu_prove_from_external_witness_data::<
-                _,
                 DefaultTranscript,
                 DefaultTreeHasher,
                 NoPow,
                 _,
             >(
-                &assembly,
+                &gpu_proof_config,
                 &witness_vector,
                 proof_config,
                 &setup_data.setup,
